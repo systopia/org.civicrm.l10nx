@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<extension key="org.civicrm.l10nx" type="module">
+  <file>l10nx</file>
+  <name>l10n Extension</name>
+  <description>Provides an interface for l10n related tools and extensions</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>CiviCRM LLC</author>
+    <email>info@civicrm.org</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">http://FIXME</url>
+    <url desc="Documentation">http://FIXME</url>
+    <url desc="Support">http://FIXME</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate></releaseDate>
+  <version></version>
+  <develStage>dev</develStage>
+  <compatibility>
+    <ver>5.8</ver>
+  </compatibility>
+  <comments>Conceived and kicked off at the Bamford sprint 2018</comments>
+  <civix>
+    <namespace>CRM/L10nx</namespace>
+  </civix>
+</extension>

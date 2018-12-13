@@ -1,0 +1,6 @@
+- start with current ts() replacement
+- implement lookup
+- add .mo tools
+- create table/service?
+- docs
+- call bgm
