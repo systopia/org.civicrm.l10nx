@@ -12,9 +12,15 @@ use CRM_L10nx_ExtensionUtil as E;
  * @return string translated string
  */
 function l10nx_legacy_ts($text, $params = array()) {
-  require_once 'CRM/L10nx/I18n.php';
   $activeLocale = CRM_Core_I18n::getLocale();
-  $l10n = CRM_L10nx_I18n::getInstance($activeLocale);
+
+  require_once 'CRM/L10nx/I18n.php';
+  if (defined('CIVICRM_GETTEXT_NATIVE') && CIVICRM_GETTEXT_NATIVE && function_exists('gettext')) {
+    require_once 'CRM/L10nx/I18nNative.php';
+    $l10n = CRM_L10nx_I18nNative::getInstance($activeLocale);
+  } else {
+    $l10n = CRM_L10nx_I18n::getInstance($activeLocale);
+  }
   return $l10n->ts($text, $params);
 }
 

@@ -16,7 +16,7 @@
 require_once 'Hook.php';
 
 /**
- * @todo currently only phpgettext, implement native
+ * Basic I18n implementation using phpgettext
  */
 class CRM_L10nx_I18n {
 
@@ -28,7 +28,7 @@ class CRM_L10nx_I18n {
   /**
    * @var array mo_file_name => gettext reader
    */
-  protected static $gettext_reader = [];
+  protected static $gettext_resource = [];
 
 
   /**
@@ -106,8 +106,6 @@ class CRM_L10nx_I18n {
       $domain = CRM_Utils_Array::value('domain', $params, 'civicrm');
       $mo_file = $this->getDefaultMO($domain);
     }
-    $gettext = $this->getGettextReader($mo_file);
-
 
     if (isset($params['escape'])) {
       $escape = $params['escape'];
@@ -238,14 +236,14 @@ class CRM_L10nx_I18n {
    * @return gettext_reader reader
    */
   public function getGettextReader($mo_file) {
-    if (!isset(self::$gettext_reader[$mo_file])) {
+    if (!isset(self::$gettext_resource[$mo_file])) {
       require_once 'PHPgettext/streams.php';
       require_once 'PHPgettext/gettext.php';
-      $streamer = new FileReader($mo_file);
-      self::$gettext_reader[$mo_file] = new gettext_reader($streamer);
+      $streamer                         = new FileReader($mo_file);
+      self::$gettext_resource[$mo_file] = new gettext_reader($streamer);
     }
 
-    return self::$gettext_reader[$mo_file];
+    return self::$gettext_resource[$mo_file];
   }
 
 
@@ -301,25 +299,42 @@ class CRM_L10nx_I18n {
 
     // dont translate if we've done exactMatch already
     if (!$exactMatch) {
-      $php_gettext = $this->getGettextReader($mo_file);
-      // use plural if required parameters are set
-      if (isset($count) && isset($plural)) {
-        $text = $php_gettext->ngettext($text, $plural, $count);
-
-        // expand %count in translated string to $count
-        $text = strtr($text, array('%count' => $count));
-
-        // if not plural, but the locale's set, translate
-      } else {
-        if ($context) {
-          $text = $php_gettext->pgettext($context, $text);
-        } else {
-          $text = $php_gettext->translate($text);
-        }
-      }
+      $text = $this->crm_translate_gettext($text, $mo_file, $count, $plural, $context);
     }
 
     return $text;
+  }
+
+  /**
+   * relay the translation to the actual gettext function
+   *
+   * Mostly copied from CRM_Core_I18n:crm_translate_raw
+   *
+   * @param string $text
+   * @param int|NULL $count
+   * @param string $plural
+   * @param string $context
+   * @param string $mo_file
+   *
+   * @return string
+   */
+  protected function crm_translate_gettext($text, $mo_file, $count, $plural, $context) {
+    $php_gettext = $this->getGettextReader($mo_file);
+    // use plural if required parameters are set
+    if (isset($count) && isset($plural)) {
+      $text = $php_gettext->ngettext($text, $plural, $count);
+
+      // expand %count in translated string to $count
+      return strtr($text, array('%count' => $count));
+
+      // if not plural, but the locale's set, translate
+    } else {
+      if ($context) {
+        return $php_gettext->pgettext($context, $text);
+      } else {
+        return $php_gettext->translate($text);
+      }
+    }
   }
 
 
