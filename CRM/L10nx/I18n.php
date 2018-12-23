@@ -78,11 +78,19 @@ class CRM_L10nx_I18n {
    */
   public function ts($text, $params = array()) {
     // see if there is a custom translation file
-    $mo_file = NULL;
-    CRM_L10nx_Hook::custom_mo($mo_file, $this->locale, 'ts', CRM_Utils_Array::value('context', $params));
+    $mo_files = [$this->getDefaultMO(CRM_Utils_Array::value('domain', $params, 'civicrm'))];
+    CRM_L10nx_Hook::custom_mo($mo_files, $this->locale, 'ts', CRM_Utils_Array::value('context', $params));
 
     // run the CiviCRM translation
-    $translated_text = $this->crm_translate($text, $params, $mo_file);
+    $translated = FALSE;
+    foreach ($mo_files as $mo_file) {
+      $translated_text = $this->crm_translate($text, $params, $mo_file, $translated);
+
+      if ($translated) {
+        // translation successful
+        break;
+      }
+    }
 
     // send the post event
     CRM_L10nx_Hook::ts_post($this->locale, $text, $translated_text, $params);
@@ -96,16 +104,14 @@ class CRM_L10nx_I18n {
    *
    * Mostly copied from CRM_Core_I18n:crm_translate
    *
-   * @param string $text the text to be translated
-   * @param array $params translation parameters
-   * @param string $mo_file the mo_file to be used
-   * @return string
+   * @param string $text            the text to be translated
+   * @param array  $params          translation parameters
+   * @param string $mo_file         the mo_file to be used
+   * @param bool   $translated      did the string get translated?
+   * @return string translation
    */
-  public function crm_translate($text, $params, $mo_file = NULL) {
-    if (!$mo_file) {
-      $domain = CRM_Utils_Array::value('domain', $params, 'civicrm');
-      $mo_file = $this->getDefaultMO($domain);
-    }
+  public function crm_translate($text, $params, $mo_file, &$translated) {
+    $original_text = $text;
 
     if (isset($params['escape'])) {
       $escape = $params['escape'];
@@ -123,6 +129,8 @@ class CRM_L10nx_I18n {
       if (isset($escape) and ($escape == 'js')) {
         $text = addcslashes($text, "'");
       }
+
+      $translated = TRUE;
       return $text;
     }
 
@@ -156,17 +164,17 @@ class CRM_L10nx_I18n {
       // It might be prettier to cast to an array, but this is high-traffic stuff.
       if (is_array($domain)) {
         foreach ($domain as $d) {
-          $candidate = $this->crm_translate_raw($text, $d, $count, $plural, $context, $mo_file);
+          $candidate = $this->crm_translate_raw($text, $d, $count, $plural, $context, $mo_file, $translated);
           if ($candidate != $text) {
             $text = $candidate;
             break;
           }
         }
       } else {
-        $text = $this->crm_translate_raw($text, $domain, $count, $plural, $context, $mo_file);
+        $text = $this->crm_translate_raw($text, $domain, $count, $plural, $context, $mo_file, $translated);
       }
     } else {
-      $text = $this->crm_translate_raw($text, NULL, $count, $plural, $context, $mo_file);
+      $text = $this->crm_translate_raw($text, NULL, $count, $plural, $context, $mo_file, $translated);
     }
 
     // replace the numbered %1, %2, etc. params if present
@@ -184,6 +192,9 @@ class CRM_L10nx_I18n {
       $text = addcslashes($text, "'");
     }
 
+    // FIXME: ask subfunction
+
+    $translated = ($original_text != $text);
     return $text;
   }
 
@@ -199,8 +210,13 @@ class CRM_L10nx_I18n {
       $domain = 'civicrm';
     }
 
+    if (is_array($domain)) {
+      $domain = reset($domain);
+    }
+
     if (!isset($this->default_mos[$domain])) {
       try {
+        // could be an extension
         $mapper = CRM_Extension_System::singleton()->getMapper();
         $path = $mapper->keyToBasePath($domain);
         $info = $mapper->keyToInfo($domain);
@@ -211,7 +227,8 @@ class CRM_L10nx_I18n {
         if (file_exists($mo_file)) {
           $this->default_mos[$domain] = $mo_file;
         } else {
-          CRM_Core_Session::setStatus("No mo files found for {$domain} / {$this->locale}:", 'error');
+          // no localisation present
+          // CRM_Core_Session::setStatus("No mo files found for {$domain} / {$this->locale}:", 'error');
         }
       }
       catch (Exception $e) {
@@ -260,10 +277,11 @@ class CRM_L10nx_I18n {
    * @param string $plural
    * @param string $context
    * @param string $mo_file
+   * @param bool $translated
    *
    * @return string
    */
-  protected function crm_translate_raw($text, $domain, $count, $plural, $context, $mo_file = NULL) {
+  protected function crm_translate_raw($text, $domain, $count, $plural, $context, $mo_file, &$translated) {
     // do all wildcard translations first
 
     // FIXME: Is there a constant we can reference instead of hardcoding en_US?
@@ -282,6 +300,7 @@ class CRM_L10nx_I18n {
       foreach ($stringTable['enabled']['exactMatch'] as $search => $replace) {
         if ($search === $text) {
           $exactMatch = TRUE;
+          $translated = TRUE;
           $text       = $replace;
           break;
         }
@@ -295,11 +314,12 @@ class CRM_L10nx_I18n {
       $search  = array_keys($stringTable['enabled']['wildcardMatch']);
       $replace = array_values($stringTable['enabled']['wildcardMatch']);
       $text    = str_replace($search, $replace, $text);
+      $translated = TRUE;
     }
 
     // dont translate if we've done exactMatch already
     if (!$exactMatch) {
-      $text = $this->crm_translate_gettext($text, $mo_file, $count, $plural, $context);
+      $text = $this->crm_translate_gettext($text, $mo_file, $count, $plural, $context, $translated);
     }
 
     return $text;
@@ -315,26 +335,29 @@ class CRM_L10nx_I18n {
    * @param string $plural
    * @param string $context
    * @param string $mo_file
+   * @param bool $translated
    *
    * @return string
    */
-  protected function crm_translate_gettext($text, $mo_file, $count, $plural, $context) {
+  protected function crm_translate_gettext($text, $mo_file, $count, $plural, $context, &$translated) {
     $php_gettext = $this->getGettextReader($mo_file);
     // use plural if required parameters are set
     if (isset($count) && isset($plural)) {
-      $text = $php_gettext->ngettext($text, $plural, $count);
+      $translated_text = $php_gettext->ngettext($text, $plural, $count);
 
       // expand %count in translated string to $count
-      return strtr($text, array('%count' => $count));
+      $translated_text = strtr($translated_text, array('%count' => $count));
 
       // if not plural, but the locale's set, translate
     } else {
       if ($context) {
-        return $php_gettext->pgettext($context, $text);
+        $translated_text = $php_gettext->pgettext($context, $text);
       } else {
-        return $php_gettext->translate($text);
+        $translated_text = $php_gettext->translate($text);
       }
     }
+    $translated = ($text != $translated_text);
+    return $text;
   }
 
 

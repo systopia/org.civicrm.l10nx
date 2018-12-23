@@ -21,8 +21,8 @@ class CRM_L10nx_Hook
    *
    * If no domain is given, this will be passed on to CiviCRM's internal ts system
    *
-   * @param string|null $mo_file_path
-   *   The path for the new mo file
+   * @param array $mo_file_paths
+   *   List of paths to the mo files to be used
    * @param string $locale
    *   locale for translating.
    * @param string $context
@@ -30,9 +30,9 @@ class CRM_L10nx_Hook
    * @param string $domain
    *   The translation domain
    */
-  public static function custom_mo(&$mo_file_path, $locale, $context, $domain) {
+  public static function custom_mo(&$mo_file_paths, $locale, $context, $domain) {
     \Civi::dispatcher()->dispatch('civi.l10n.custom_mo', \Civi\Core\Event\GenericHookEvent::create([
-        'mo_file_path' => $mo_file_path,
+        'mo_file_path' => $mo_file_paths,
         'locale'       => $locale,
         'context'      => &$context,
         'domain'       => $domain
