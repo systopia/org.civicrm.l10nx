@@ -357,7 +357,7 @@ class CRM_L10nx_I18n {
       }
     }
     $translated = ($text != $translated_text);
-    return $text;
+    return $translated_text;
   }
 
 
