@@ -32,10 +32,10 @@ class CRM_L10nx_Hook
    */
   public static function custom_mo(&$mo_file_paths, $locale, $context, $domain) {
     \Civi::dispatcher()->dispatch('civi.l10n.custom_mo', \Civi\Core\Event\GenericHookEvent::create([
-        'mo_file_path' => $mo_file_paths,
-        'locale'       => $locale,
-        'context'      => &$context,
-        'domain'       => $domain
+        'mo_file_paths' => &$mo_file_paths,
+        'locale'        => $locale,
+        'context'       => $context,
+        'domain'        => $domain
     ]));
   }
 
