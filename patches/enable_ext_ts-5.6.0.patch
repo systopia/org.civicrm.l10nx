@@ -1,0 +1,29 @@
+From b9176a2570b09753f9a5b9a3471fd0f15f2b21a6 Mon Sep 17 00:00:00 2001
+From: "B. Endres" <endres@systopia.de>
+Date: Fri, 28 Dec 2018 07:50:37 +0100
+Subject: [PATCH] allow custom ts function in extension
+
+---
+ CRM/Core/I18n.php | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/CRM/Core/I18n.php b/CRM/Core/I18n.php
+index 40107e9824c..c2019876562 100644
+--- a/CRM/Core/I18n.php
++++ b/CRM/Core/I18n.php
+@@ -751,8 +751,13 @@ function ts($text, $params = array()) {
+     $areSettingsAvailable = (bool) \Civi\Core\Container::getBootService('settings_manager');
+     if ($areSettingsAvailable) {
+       $config = CRM_Core_Config::singleton();
+-      if (isset($config->customTranslateFunction) and function_exists($config->customTranslateFunction)) {
+-        $function = $config->customTranslateFunction;
++      if (isset($config->customTranslateFunction)) {
++        if (function_exists($config->customTranslateFunction)) {
++          $function = $config->customTranslateFunction;
++        } else {
++          // maybe it doesn't exist yet... try again later
++          $areSettingsAvailable = FALSE;
++        }
+       }
+     }
+   }
