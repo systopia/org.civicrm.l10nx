@@ -28,7 +28,6 @@ class CRM_L10nx_Upgrader extends CRM_L10nx_Upgrader_Base {
    */
   public function enable() {
     // set legacy ts function as entry point
-    CRM_L10nx_I18n::legacy_ts();
     $version = CRM_Utils_System::version();
     if (version_compare($version, NEW_L10NX_CIVICRM_VERSION, '<')) {
       // in the old versions, there was only the custom ts function as an entry point to the l10n system
