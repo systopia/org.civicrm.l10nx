@@ -1,0 +1,29 @@
+From 31cec9dc6b86148b1ba8984aec87245378c478c5 Mon Sep 17 00:00:00 2001
+From: "B. Endres" <endres@systopia.de>
+Date: Wed, 5 Jun 2019 21:01:49 +0200
+Subject: [PATCH] extension ts function patch for 5.13.5
+
+---
+ CRM/Core/I18n.php | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/CRM/Core/I18n.php b/CRM/Core/I18n.php
+index 217aec7397c..823787aec4d 100644
+--- a/CRM/Core/I18n.php
++++ b/CRM/Core/I18n.php
+@@ -782,8 +782,13 @@ function ts($text, $params = []) {
+     $areSettingsAvailable = (bool) \Civi\Core\Container::getBootService('settings_manager');
+     if ($areSettingsAvailable) {
+       $config = CRM_Core_Config::singleton();
+-      if (isset($config->customTranslateFunction) and function_exists($config->customTranslateFunction)) {
+-        $function = $config->customTranslateFunction;
++      if (isset($config->customTranslateFunction)) {
++        if (function_exists($config->customTranslateFunction)) {
++          $function = $config->customTranslateFunction;
++        } else {
++          // maybe it doesn't exist yet... try again later
++          $areSettingsAvailable = FALSE;
++        }
+       }
+     }
+   }

@@ -38,7 +38,6 @@ class CRM_L10nx_I18nImplementation implements CRM_Core_I18n_Interface {
    * @return string translated string
    */
   public static function legacy_ts($text, $params = array()) {
-    CRM_Core_Error::debug_log_message("HERE!");
     return $text;
   }
 
@@ -72,7 +71,6 @@ class CRM_L10nx_I18nImplementation implements CRM_Core_I18n_Interface {
     require_once 'PHPgettext/streams.php';
     require_once 'PHPgettext/gettext.php';
 
-    $this->_d
     // TODO
     $mo_file = CRM_Core_I18n::getResourceDir() . $locale . DIRECTORY_SEPARATOR . 'LC_MESSAGES' . DIRECTORY_SEPARATOR . 'civicrm.mo';
 

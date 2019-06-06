@@ -58,11 +58,14 @@ class CRM_L10nx_I18n {
    * CRM_L10nx_I18n constructor.
    * @param string $locale
    */
-  protected function __construct($locale) {
+  public function __construct($locale) {
     $this->locale = $locale;
 
     // set civicrm default mo
-    $this->default_mos['civicrm'] = CRM_Core_I18n::getResourceDir() . $this->locale . DIRECTORY_SEPARATOR . 'LC_MESSAGES' . DIRECTORY_SEPARATOR . 'civicrm.mo';
+    $civicrm_mo = CRM_Core_I18n::getResourceDir() . $this->locale . DIRECTORY_SEPARATOR . 'LC_MESSAGES' . DIRECTORY_SEPARATOR . 'civicrm.mo';
+    $this->default_mos['civicrm']        = $civicrm_mo;
+    $this->default_mos['civicrm-data']   = $civicrm_mo;
+    $this->default_mos['civicrm-option'] = $civicrm_mo;
   }
 
   /**

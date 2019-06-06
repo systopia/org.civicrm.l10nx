@@ -35,6 +35,10 @@ function l10nx_civicrm_config(&$config) {
 
   // install the link
   CRM_L10nx_I18n::config();
+
+  // enable injection
+  require_once 'CRM/L10nx/Feeder.php';
+  \Civi::dispatcher()->addSubscriber(new CRM_L10nx_Feeder());
 }
 
 /**
