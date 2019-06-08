@@ -53,7 +53,10 @@ class CRM_L10nx_Hook
    * @param string $translated_text
    *   The text with the current translation
    * @param array $params
-   *   The parameters passed to dts
+   *   Parameters passed to dts_post. Should include
+   *    'table_name' and 'column_name' OR
+   *    'entity' and 'attribute'
+   *   to identify the context of the value
    */
   public static function dts_post($locale, $original_text, &$translated_text, $params) {
     \Civi::dispatcher()->dispatch('civi.l10n.dts_post', \Civi\Core\Event\GenericHookEvent::create([

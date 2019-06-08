@@ -80,12 +80,24 @@ class CRM_L10nx_Configuration {
 
   /**
    * Should the option group translation use gettext context?
-   * Disadvantage: you have to specify translations for each option value
+   * Disadvantage: you have to specify translations for each option value, and you can't use the CiviCRM default translations
    * Advantage: you can have different translations for the same label, depending on the option group
    *
    * @return bool
    */
   public function useTranslationContextForOptions() {
+    // TODO: implement?
+    return FALSE;
+  }
+
+  /**
+   * Should the data translation use gettext context?
+   * Disadvantage: you have to specify translations for each option value, and you can't use the CiviCRM default translations
+   * Advantage: you can have different translations for the same label, depending on the option group
+   *
+   * @return bool
+   */
+  public function useTranslationContextForData() {
     // TODO: implement?
     return FALSE;
   }
@@ -119,5 +131,98 @@ class CRM_L10nx_Configuration {
    */
   public function getDataLocale() {
     return CRM_Utils_Array::value('data_language', $this->settings, 'en_US');
+  }
+
+  /**
+   * Get the list of translatable columns for the given civicrm table
+   *
+   * @param $table_name string civicrm table name
+   * @return array list if columns to be translated
+   */
+  public static function getTranslatableColumns($table_name) {
+    static $translatable_columns = NULL;
+    if ($translatable_columns === NULL) {
+      // init with the translatable columns from the multi-language schema
+      $translatable_columns = CRM_Core_I18n_SchemaStructure::columns();
+      // add our own
+      $translatable_columns['civicrm_financial_type'] = ['name'];
+      unset($translatable_columns['civicrm_option_group']);
+    }
+    return CRM_Utils_Array::value($table_name, $translatable_columns, []);
+  }
+
+  /**
+   * Get a list of known option groups by entity/field
+   *
+   * Remark: for performance reasons, this is hardcoded rather then dynamically built
+   */
+  public static function getOptionGroupMapping() {
+    static $option_group_mapping = NULL;
+    if ($option_group_mapping === NULL) {
+      $option_group_mapping = [
+          'Contact'                => [
+              'prefix_id'                      => 'individual_prefix',
+              'suffix_id'                      => 'individual_suffix',
+              'contact_sub_type'               => 'civicrm_contact_type__label',
+              'preferred_communication_method' => 'preferred_communication_method',
+              'preferred_language'             => 'languages',
+              'preferred_mail_format'          => 'IGNORE',
+              'communication_style_id'         => 'communication_style',
+              'gender_id'                      => 'gender_id',
+          ],
+          'Email'                  => [
+              'location_type_id' => 'civicrm_location_type__display_name',
+              'on_hold'          => 'IGNORE',
+          ],
+          'Phone'                  => [
+              'location_type_id' => 'civicrm_location_type__display_name',
+              'phone_type_id'    => 'phone_type',
+          ],
+          'IM'                     => [
+              'location_type_id' => 'civicrm_location_type__display_name',
+              'provider_id'      => 'instant_messenger_service',
+          ],
+          'Website'                => [
+              'location_type_id' => 'civicrm_location_type__display_name',
+              'website_type_id'  => 'website_type',
+          ],
+          'Address'                => [
+              'location_type_id'  => 'civicrm_location_type__display_name',
+              'state_province_id' => 'IGNORE', // should be translated already / 'civicrm_state_province__name',
+              'country_id'        => 'IGNORE', // should be translated already / 'civicrm_country__name',
+              'county_id'         => 'IGNORE', // should be translated already / 'civicrm_county__name',
+          ],
+          'EntityFinancialAccount' => [
+              'financial_account_id' => 'IGNORE',
+          ],
+          'PaymentProcessor'       => [
+              'domain_id' => 'IGNORE',
+          ],
+          'Contribution'           => [
+              'payment_instrument_id'  => 'payment_instrument',
+              'contribution_status_id' => 'contribution_status',
+              'currency'               => 'IGNORE',
+          ],
+          'Event'                  => [
+              'event_type_id'          => 'event_type',
+              'default_role_id'        => 'participant_role',
+              'participant_listing_id' => 'participant_listing',
+          ],
+          'Membership'             => [
+              'membership_type_id' => 'civicrm_membership_type__name',
+              'status_id'          => 'civicrm_membership_status__label',
+          ],
+          'ContributionSoft'       => [
+              'soft_credit_type_id' => 'soft_credit_type',
+          ],
+          'OptionValue'            => [
+              'option_group_id' => 'IGNORE',
+          ],
+          'UFField'                => [
+              'uf_group_id' => 'IGNORE',
+          ],
+      ];
+    }
+    return $option_group_mapping;
   }
 }

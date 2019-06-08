@@ -24,6 +24,14 @@ function l10nx_legacy_ts($text, $params = array()) {
   return $l10n->ts($text, $params);
 }
 
+/**
+ * Inject API translation hook
+ */
+function l10nx_civicrm_apiWrappers(&$wrappers, $apiRequest) {
+  if (CRM_L10nx_Configuration::get()->translateData()) {
+    $wrappers[] = new CRM_L10nx_ApiTranslator();
+  }
+}
 
 /**
  * Implements hook_civicrm_config().
