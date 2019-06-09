@@ -79,6 +79,12 @@ class CRM_L10nx_Feeder implements EventSubscriberInterface {
       return;
     }
 
+    // turn off for admin pages
+    // TODO: is this necessary?
+    if (strstr($_SERVER['REQUEST_URI'], 'civicrm/admin')) {
+      return;
+    }
+
     // look up option group
     $config = CRM_L10nx_Configuration::get();
     $option_group = $this->getOptionGroupName($fo_event);

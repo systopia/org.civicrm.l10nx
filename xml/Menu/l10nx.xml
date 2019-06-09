@@ -3,7 +3,7 @@
   <item>
     <path>civicrm/admin/l10nx</path>
     <page_callback>CRM_L10nx_Form_Settings</page_callback>
-    <title>Extended Settings (l10nx)</title>
+    <title>Extended Localisation Settings (l10nx)</title>
     <access_arguments>administer CiviCRM</access_arguments>
     <adminGroup>Localization</adminGroup>
     <icon>admin/small/domain.png</icon>

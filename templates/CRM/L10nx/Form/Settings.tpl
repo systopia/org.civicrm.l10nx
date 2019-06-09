@@ -38,3 +38,19 @@
 <div class="crm-submit-buttons">
 {include file="CRM/common/formButtons.tpl" location="bottom"}
 </div>
+
+{literal}
+<script type="application/javascript">
+function l10nxShowOptionGroups() {
+  let active = cj("#translate_options").prop("checked");
+  if (active) {
+    cj("div.l10nx-option-groups").show(100);
+  } else {
+    cj("div.l10nx-option-groups").hide(100);
+  }
+}
+l10nxShowOptionGroups();
+cj("#translate_options").change(l10nxShowOptionGroups);
+
+</script>
+{/literal}

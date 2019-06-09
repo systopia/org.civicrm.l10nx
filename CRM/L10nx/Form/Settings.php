@@ -26,13 +26,13 @@ class CRM_L10nx_Form_Settings extends CRM_Core_Form {
     $this->add(
       'checkbox',
       'translate_data',
-      E::ts('Translate DB Data')
+      E::ts('Translate DB Data (experimental)')
     );
 
     $this->add(
         'checkbox',
         'translate_options',
-        E::ts('Translate Options')
+        E::ts('Translate Options (experimental)')
     );
 
     $this->add(

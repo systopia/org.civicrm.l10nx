@@ -198,6 +198,10 @@ class CRM_L10nx_Configuration {
           'PaymentProcessor'       => [
               'domain_id' => 'IGNORE',
           ],
+          'Activity'               => [
+              'activity_type_id' => 'activity_type',
+              'status_id'        => 'activity_status',
+          ],
           'Contribution'           => [
               'payment_instrument_id'  => 'payment_instrument',
               'contribution_status_id' => 'contribution_status',

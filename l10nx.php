@@ -171,30 +171,35 @@ function l10nx_civicrm_entityTypes(&$entityTypes) {
   _l10nx_civix_civicrm_entityTypes($entityTypes);
 }
 
-// --- Functions below this ship commented out. Uncomment as required. ---
-
-/**
- * Implements hook_civicrm_preProcess().
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_preProcess
- *
-function l10nx_civicrm_preProcess($formName, &$form) {
-
-} // */
-
 /**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
- *
+ */
 function l10nx_civicrm_navigationMenu(&$menu) {
-  _l10nx_civix_insert_navigation_menu($menu, 'Mailings', array(
-    'label' => E::ts('New subliminal message'),
-    'name' => 'mailing_subliminal_message',
-    'url' => 'civicrm/mailing/subliminal',
-    'permission' => 'access CiviMail',
-    'operator' => 'OR',
-    'separator' => 0,
-  ));
+  _l10nmo_civix_insert_navigation_menu($menu, 'Administer/Localization', [
+      'label'      => E::ts('Extended Configuration (l10nx)'),
+      'name'       => 'l10nx_config',
+      'url'        => 'civicrm/admin/l10nx',
+      'permission' => 'administer CiviCRM',
+      'operator'   => 'OR',
+      'separator'  => 0,
+  ]);
   _l10nx_civix_navigationMenu($menu);
-} // */
+}
+
+/**
+ * Issue a warning, if you are on admin pages, but you're not using the data locale
+ *
+ * Implements hook_civicrm_buildForm().
+ * @todo do we need this?
+ */
+function _todo_l10nx_civicrm_buildForm($formName, &$form) {
+  if (strstr($_SERVER['REQUEST_URI'], 'civicrm/admin')) {
+    $data_locale = CRM_L10nx_Configuration::get()->getDataLocale();
+    $user_locale = CRM_Core_I18n::getLocale();
+    if ($data_locale != $user_locale) {
+      CRM_Core_Session::setStatus(E::ts("You have set the data language to {$data_locale}, but you're currently using the system in {$user_locale}. Make sure you know what you're doing."), E::ts("Be careful!"), 'info');
+    }
+  }
+}
