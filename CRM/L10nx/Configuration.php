@@ -16,7 +16,8 @@
 /**
  * Provides the basic configuration for the l10nx behaviour
  */
-class CRM_L10nx_Configuration {
+class CRM_L10nx_Configuration
+{
 
   protected $settings = NULL;
 
@@ -24,7 +25,8 @@ class CRM_L10nx_Configuration {
    * Get the current configuration
    * @return CRM_L10nx_Configuration configuration
    */
-  public static function get() {
+  public static function get()
+  {
     static $singleton = NULL;
     if ($singleton === NULL) {
       $singleton = new CRM_L10nx_Configuration();
@@ -32,10 +34,11 @@ class CRM_L10nx_Configuration {
     return $singleton;
   }
 
-  protected function __construct() {
+  protected function __construct()
+  {
     $this->settings = CRM_Core_BAO_Setting::getItem('l10nx', 'l10nx_settings');
     if (empty($this->settings)) {
-        $this->settings = [];
+      $this->settings = [];
     }
   }
 
@@ -43,7 +46,8 @@ class CRM_L10nx_Configuration {
    * Get all settings
    * @return array all settings
    */
-  public function getAllSettings() {
+  public function getAllSettings()
+  {
     return $this->settings;
   }
 
@@ -53,7 +57,8 @@ class CRM_L10nx_Configuration {
    * @param $settings array the new settings
    *
    */
-  public function setAllSettings($settings) {
+  public function setAllSettings($settings)
+  {
     $this->settings = $settings;
     CRM_Core_BAO_Setting::setItem($settings, 'l10nx', 'l10nx_settings');
   }
@@ -64,8 +69,9 @@ class CRM_L10nx_Configuration {
    *
    * @return boolean feature enabled?
    */
-  public function translateData() {
-    return (boolean) CRM_Utils_Array::value('translate_data', $this->settings,FALSE);
+  public function translateData()
+  {
+    return (boolean)CRM_Utils_Array::value('translate_data', $this->settings, FALSE);
   }
 
   /**
@@ -74,8 +80,9 @@ class CRM_L10nx_Configuration {
    *
    * @return boolean feature enabled?
    */
-  public function translateOptions() {
-    return (boolean) CRM_Utils_Array::value('translate_options', $this->settings,FALSE);
+  public function translateOptions()
+  {
+    return (boolean)CRM_Utils_Array::value('translate_options', $this->settings, FALSE);
   }
 
   /**
@@ -85,7 +92,8 @@ class CRM_L10nx_Configuration {
    *
    * @return bool
    */
-  public function useTranslationContextForOptions() {
+  public function useTranslationContextForOptions()
+  {
     // TODO: implement?
     return FALSE;
   }
@@ -97,7 +105,8 @@ class CRM_L10nx_Configuration {
    *
    * @return bool
    */
-  public function useTranslationContextForData() {
+  public function useTranslationContextForData()
+  {
     // TODO: implement?
     return FALSE;
   }
@@ -108,7 +117,8 @@ class CRM_L10nx_Configuration {
    *
    * @return array list of option group names
    */
-  public function getTranslatedOptionGroups() {
+  public function getTranslatedOptionGroups()
+  {
     return CRM_Utils_Array::value('option_groups', $this->settings, []);
   }
 
@@ -118,7 +128,8 @@ class CRM_L10nx_Configuration {
    * @param $option_group_name string option group name
    * @return boolean TRUE, if it should be translated
    */
-  public function translateOptionGroup($option_group_name) {
+  public function translateOptionGroup($option_group_name)
+  {
     $translated_groups = $this->getTranslatedOptionGroups();
     return empty($translated_groups) || in_array($option_group_name, $translated_groups);
   }
@@ -129,7 +140,8 @@ class CRM_L10nx_Configuration {
    *
    * @return string locale
    */
-  public function getDataLocale() {
+  public function getDataLocale()
+  {
     return CRM_Utils_Array::value('data_language', $this->settings, 'en_US');
   }
 
@@ -139,7 +151,8 @@ class CRM_L10nx_Configuration {
    * @param $table_name string civicrm table name
    * @return array list if columns to be translated
    */
-  public static function getTranslatableColumns($table_name) {
+  public static function getTranslatableColumns($table_name)
+  {
     static $translatable_columns = NULL;
     if ($translatable_columns === NULL) {
       // init with the translatable columns from the multi-language schema
@@ -156,7 +169,8 @@ class CRM_L10nx_Configuration {
    *
    * Remark: for performance reasons, this is hardcoded rather then dynamically built
    */
-  public static function getOptionGroupMapping() {
+  public static function getOptionGroupMapping()
+  {
     static $option_group_mapping = NULL;
     if ($option_group_mapping === NULL) {
       $option_group_mapping = [
@@ -168,7 +182,7 @@ class CRM_L10nx_Configuration {
               'preferred_language'             => 'languages',
               'preferred_mail_format'          => 'IGNORE',
               'communication_style_id'         => 'communication_style',
-              'gender_id'                      => 'gender_id',
+              'gender_id'                      => 'gender',
           ],
           'Email'                  => [
               'location_type_id' => 'civicrm_location_type__display_name',
@@ -228,5 +242,22 @@ class CRM_L10nx_Configuration {
       ];
     }
     return $option_group_mapping;
+  }
+
+  /**
+   * Get a list option groups (plus fields) available for translation
+   */
+  public static function getGroupList()
+  {
+    $option_groups = [];
+    $mapping       = self::getOptionGroupMapping();
+    foreach ($mapping as $entity => $field2groups) {
+      foreach ($field2groups as $field => $group) {
+        if ($group != 'IGNORE') {
+          $option_groups[$group] = 1;
+        }
+      }
+    }
+    return array_keys($option_groups);
   }
 }
