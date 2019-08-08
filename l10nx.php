@@ -177,7 +177,7 @@ function l10nx_civicrm_entityTypes(&$entityTypes) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
  */
 function l10nx_civicrm_navigationMenu(&$menu) {
-  _l10nmo_civix_insert_navigation_menu($menu, 'Administer/Localization', [
+  _l10nx_civix_insert_navigation_menu($menu, 'Administer/Localization', [
       'label'      => E::ts('Extended Configuration (l10nx)'),
       'name'       => 'l10nx_config',
       'url'        => 'civicrm/admin/l10nx',
