@@ -72,6 +72,12 @@ class CRM_L10nx_Feeder implements EventSubscriberInterface {
    * @param GenericHookEvent $fo_event fieldOptions hook, contains: 'entity', 'field', 'options', 'params'
    */
   public function translateFieldOptions(GenericHookEvent $fo_event) {
+    // only translate the ones that should be translated
+    if (empty($fo_event->params['localize'])) {
+      return;
+    }
+
+    // check the context
     $context = isset($fo_event->params['context']) ? $fo_event->params['context'] : '';
     if ($context == 'validate' || $context == 'abbreviate') {
       // these modes don't expect translated labels
@@ -140,5 +146,8 @@ class CRM_L10nx_Feeder implements EventSubscriberInterface {
 //        }
 //      }
 //    }
+
+    // safer to ignore if we don't know it
+    return 'IGNORE';
   }
 }
