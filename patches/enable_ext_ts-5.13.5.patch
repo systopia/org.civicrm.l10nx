@@ -1,29 +1,93 @@
-From 31cec9dc6b86148b1ba8984aec87245378c478c5 Mon Sep 17 00:00:00 2001
-From: "B. Endres" <endres@systopia.de>
-Date: Wed, 5 Jun 2019 21:01:49 +0200
-Subject: [PATCH] extension ts function patch for 5.13.5
+From 6a94dbe312163908ab0a97e20102db461481feb1 Mon Sep 17 00:00:00 2001
+From: Seamus Lee <seamuslee001@gmail.com>
+Date: Mon, 7 Oct 2019 23:09:27 +0200
+Subject: [PATCH] Merge pull request #15411 from systopia/dev_l10nx
 
+Allow custom ts functions in extensions; defer custom ts calls until booted
 ---
- CRM/Core/I18n.php | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ CRM/Core/I18n.php | 40 ++++++++++++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 16 deletions(-)
 
 diff --git a/CRM/Core/I18n.php b/CRM/Core/I18n.php
-index 217aec7397c..823787aec4d 100644
+index 217aec7397c..c047b443528 100644
 --- a/CRM/Core/I18n.php
 +++ b/CRM/Core/I18n.php
-@@ -782,8 +782,13 @@ function ts($text, $params = []) {
-     $areSettingsAvailable = (bool) \Civi\Core\Container::getBootService('settings_manager');
-     if ($areSettingsAvailable) {
-       $config = CRM_Core_Config::singleton();
--      if (isset($config->customTranslateFunction) and function_exists($config->customTranslateFunction)) {
--        $function = $config->customTranslateFunction;
-+      if (isset($config->customTranslateFunction)) {
-+        if (function_exists($config->customTranslateFunction)) {
-+          $function = $config->customTranslateFunction;
-+        } else {
-+          // maybe it doesn't exist yet... try again later
-+          $areSettingsAvailable = FALSE;
+@@ -326,6 +326,7 @@ public static function getResourceDir() {
+    *   The params of the translation (if any).
+    *   - domain: string|array a list of translation domains to search (in order)
+    *   - context: string
++   *   - skip_translation: flag (do only escape/replacement, skip the actual translation)
+    *
+    * @return string
+    *   the translated string
+@@ -378,24 +379,26 @@ public function crm_translate($text, $params = []) {
+     $raw = !empty($params['raw']);
+     unset($params['raw']);
+ 
+-    if (!empty($domain)) {
+-      // It might be prettier to cast to an array, but this is high-traffic stuff.
+-      if (is_array($domain)) {
+-        foreach ($domain as $d) {
+-          $candidate = $this->crm_translate_raw($text, $d, $count, $plural, $context);
+-          if ($candidate != $text) {
+-            $text = $candidate;
+-            break;
++    if (!isset($params['skip_translation'])) {
++      if (!empty($domain)) {
++        // It might be prettier to cast to an array, but this is high-traffic stuff.
++        if (is_array($domain)) {
++          foreach ($domain as $d) {
++            $candidate = $this->crm_translate_raw($text, $d, $count, $plural, $context);
++            if ($candidate != $text) {
++              $text = $candidate;
++              break;
++            }
+           }
+         }
++        else {
++          $text = $this->crm_translate_raw($text, $domain, $count, $plural, $context);
 +        }
        }
+       else {
+-        $text = $this->crm_translate_raw($text, $domain, $count, $plural, $context);
++        $text = $this->crm_translate_raw($text, NULL, $count, $plural, $context);
+       }
      }
+-    else {
+-      $text = $this->crm_translate_raw($text, NULL, $count, $plural, $context);
+-    }
+ 
+     // replace the numbered %1, %2, etc. params if present
+     if (count($params) && !$raw) {
+@@ -768,7 +771,7 @@ public static function getLocale() {
+  *   the translated string
+  */
+ function ts($text, $params = []) {
+-  static $areSettingsAvailable = FALSE;
++  static $bootstrapReady = FALSE;
+   static $lastLocale = NULL;
+   static $i18n = NULL;
+   static $function = NULL;
+@@ -778,14 +781,19 @@ function ts($text, $params = []) {
    }
+ 
+   // When the settings become available, lookup customTranslateFunction.
+-  if (!$areSettingsAvailable) {
+-    $areSettingsAvailable = (bool) \Civi\Core\Container::getBootService('settings_manager');
+-    if ($areSettingsAvailable) {
++  if (!$bootstrapReady) {
++    $bootstrapReady = (bool) \Civi\Core\Container::isContainerBooted();
++    if ($bootstrapReady) {
++      // just got ready: determine whether there is a working custom translation function
+       $config = CRM_Core_Config::singleton();
+       if (isset($config->customTranslateFunction) and function_exists($config->customTranslateFunction)) {
+         $function = $config->customTranslateFunction;
+       }
+     }
++    else {
++      // don't _translate_ anything until bootstrap has progressed enough
++      $params['skip_translation'] = 1;
++    }
+   }
+ 
+   $activeLocale = CRM_Core_I18n::getLocale();
