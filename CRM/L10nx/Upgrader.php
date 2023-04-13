@@ -20,7 +20,7 @@ define('NEW_L10NX_CIVICRM_VERSION', '5.99'); // TODO: adjust once released
 /**
  * Collection of upgrade steps.
  */
-class CRM_L10nx_Upgrader extends CRM_L10nx_Upgrader_Base {
+class CRM_L10nx_Upgrader extends CRM_Extension_Upgrader_Base {
 
   /**
    * Extension enabled:
